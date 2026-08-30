@@ -324,10 +324,10 @@ function renderGame() {
 
       // Add thicker borders for box separation
       if ((c + 1) % boxCols === 0 && c < size - 1) {
-        cell.style.borderRight = '2px solid var(--text)';
+        cell.style.marginRight = '3px';
       }
       if ((r + 1) % boxRows === 0 && r < size - 1) {
-        cell.style.borderBottom = '2px solid var(--text)';
+        cell.style.marginBottom = '3px';
       }
 
       if (val !== 0) {
@@ -465,6 +465,75 @@ function giveHint() {
   }
 }
 
+// --- Confetti ---
+function launchConfetti(stars) {
+  const canvas = document.getElementById('confetti-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+  canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1);
+  ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  const W = canvas.offsetWidth;
+  const H = canvas.offsetHeight;
+
+  const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6fb7', '#c084fc', '#fb923c'];
+  const count = stars * 40; // more stars = more confetti
+  const pieces = [];
+
+  for (let i = 0; i < count; i++) {
+    pieces.push({
+      x: W / 2 + (Math.random() - 0.5) * 60,
+      y: H * 0.5,
+      vx: (Math.random() - 0.5) * 12,
+      vy: -Math.random() * 14 - 4,
+      size: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 12,
+      shape: Math.random() > 0.5 ? 'rect' : 'circle',
+      opacity: 1
+    });
+  }
+
+  let frame = 0;
+  const maxFrames = 120;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of pieces) {
+      p.x += p.vx;
+      p.vy += 0.3; // gravity
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      p.opacity = Math.max(0, 1 - frame / maxFrames);
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation * Math.PI / 180);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+
+      if (p.shape === 'rect') {
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    frame++;
+    if (frame < maxFrames) {
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, W, H);
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
 // --- Win ---
 function showWin() {
   const profile = getProfile();
@@ -506,6 +575,7 @@ function showWin() {
     pool[Math.floor(Math.random() * pool.length)];
 
   showScreen('win');
+  setTimeout(() => launchConfetti(stars), 200);
 }
 
 function nextPuzzle() {
@@ -550,6 +620,16 @@ function init() {
   document.getElementById('btn-erase').onclick = eraseCell;
   document.getElementById('btn-check').onclick = checkBoard;
   document.getElementById('btn-hint').onclick = giveHint;
+  document.getElementById('btn-sound').onclick = () => {
+    Sounds.setMuted(!Sounds.isMuted());
+    document.getElementById('btn-sound').textContent = Sounds.isMuted() ? '🔇' : '🔊';
+    localStorage.setItem('kids-sudoku-muted', Sounds.isMuted() ? '1' : '0');
+  };
+  // Restore mute state
+  if (localStorage.getItem('kids-sudoku-muted') === '1') {
+    Sounds.setMuted(true);
+    document.getElementById('btn-sound').textContent = '🔇';
+  }
   document.getElementById('btn-next-puzzle').onclick = nextPuzzle;
   document.getElementById('btn-back-menu').onclick = showModes;
 
