@@ -251,78 +251,70 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
 
 /* Responsive - iPhone optimization */
 
-/* Game screen: flex column, board takes remaining space */
+/* Game screen: flex column, everything visible without scrolling */
 #screen-game {
   padding: 8px 12px; padding-bottom: env(safe-area-inset-bottom, 8px);
   justify-content: flex-start; overflow: hidden;
-  height: 100dvh; /* dynamic viewport height, falls back to 100vh */
+  height: 100dvh;
 }
 @supports not (height: 100dvh) {
-  #screen-game { height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  #screen-game { height: 100vh; }
 }
 
-/* Board: fill available space, maintain square */
+/* Board: sized by AVAILABLE HEIGHT, not width.
+   Reserve ~200px for header(36) + input-bar(50) + actions(80) + gaps/padding(34).
+   min() ensures it never exceeds the screen width either. */
 .board-container {
-  max-width: 400px; width: 100%;
-  /* Key trick: let the board be as tall as wide, but shrink if needed */
+  width: min(100%, calc(100dvh - 200px));
+  max-width: 400px;
   flex-shrink: 1; flex-grow: 0;
+}
+@supports not (width: 1dvh) {
+  .board-container { width: min(100%, calc(100vh - 220px)); }
 }
 
 /* Compact game header */
 .game-header {
   gap: 4px; flex-wrap: nowrap; flex-shrink: 0;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .game-header .btn-icon { padding: 4px; font-size: 1.3rem; }
 .game-info { font-size: 0.95rem; white-space: nowrap; }
 .game-timer { font-size: 0.95rem; white-space: nowrap; }
 
 /* Compact controls below board */
-.input-bar { margin-top: 8px; gap: 6px; flex-shrink: 0; }
-.game-actions { margin-top: 6px; gap: 8px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
+.input-bar { margin-top: 6px; gap: 5px; flex-shrink: 0; }
+.game-actions { margin-top: 4px; gap: 6px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
 
-/* iPhone SE / mini / older (< 390px width) */
+/* Phone-sized screens */
+@media (max-width: 430px) {
+  .cell { font-size: 1.4rem; }
+  .input-btn { width: 42px; height: 42px; font-size: 1.15rem; border-radius: 10px; }
+  .btn-action { padding: 7px 10px; font-size: 0.8rem; }
+}
+
+/* Small phones (iPhone SE / mini, < 390px) */
 @media (max-width: 389px) {
-  #screen-game { padding: 6px 8px; }
-  .cell { font-size: 1.2rem; }
-  .input-btn { width: 36px; height: 36px; font-size: 1rem; border-radius: 10px; }
+  #screen-game { padding: 4px 6px; }
+  .cell { font-size: 1.1rem; }
+  .input-btn { width: 36px; height: 36px; font-size: 1rem; }
   h1 { font-size: 1.4rem; }
-  .btn-action { padding: 6px 8px; font-size: 0.75rem; }
-  .board-container { max-width: 320px; }
+  .btn-action { padding: 5px 8px; font-size: 0.75rem; }
   .game-header .btn-icon { font-size: 1rem; padding: 2px; }
   .game-info { font-size: 0.85rem; }
   .game-timer { font-size: 0.85rem; }
   .mode-card { padding: 14px 8px; }
   .mode-card .mode-icon { font-size: 1.8rem; }
   .profile-card .avatar { font-size: 2.2rem; }
-  .input-bar { gap: 4px; margin-top: 6px; }
-  .game-actions { gap: 6px; margin-top: 4px; }
+  .input-bar { gap: 3px; margin-top: 4px; }
+  .game-actions { gap: 4px; margin-top: 3px; }
 }
 
-/* iPhone 12/13/14/15 standard (390-430px) */
-@media (min-width: 390px) and (max-width: 430px) {
-  .cell { font-size: 1.4rem; }
-  .input-btn { width: 42px; height: 42px; font-size: 1.15rem; }
-  .board-container { max-width: 360px; }
-  .btn-action { padding: 8px 12px; font-size: 0.8rem; }
-}
-
-/* iPhone Pro Max / Plus (> 430px, still phone) */
-@media (min-width: 431px) and (max-width: 767px) {
-  .board-container { max-width: 380px; }
-  .cell { font-size: 1.5rem; }
-  .input-btn { width: 46px; height: 46px; font-size: 1.25rem; }
-}
-
-/* Very short viewports (landscape phone, or old iPhone SE) */
+/* Very short viewports (landscape phone) */
 @media (max-height: 600px) {
-  #screen-game { padding: 4px 6px; }
-  .board-container { max-width: 280px; }
+  .board-container { width: min(100%, calc(100dvh - 160px)); }
   .cell { font-size: 1rem; }
-  .game-header { margin-bottom: 2px; }
-  .input-bar { margin-top: 4px; gap: 3px; }
   .input-btn { width: 32px; height: 32px; font-size: 0.9rem; }
-  .game-actions { margin-top: 2px; }
   .btn-action { padding: 4px 8px; font-size: 0.7rem; }
 }
 
