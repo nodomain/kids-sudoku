@@ -28,14 +28,10 @@ A kid-friendly Sudoku progressive web app for children aged 3-7. No ads, no trac
 
 ## Development
 
-Edit source files in the repo root. The pre-commit hook runs `node build.js` automatically, which:
-1. Hashes JS/CSS files with MD5 content hash
-2. Rewrites index.html references to hashed filenames
-3. Generates a new Service Worker with updated cache name
-4. Outputs everything to `docs/` (served by GitHub Pages)
+Edit source files in the repo root. `node build.js` generates cache-busted output to `docs/` (gitignored).
 
 ```bash
-# Manual build (normally handled by pre-commit hook)
+# Build for local preview
 node build.js
 
 # Local preview
@@ -44,11 +40,11 @@ python3 -m http.server 8787 --bind 127.0.0.1 --directory docs
 
 ## Deploy
 
-Push to a feature branch, create PR, squash-merge to main. GitHub Pages auto-deploys from `docs/`.
+Push to a feature branch, create PR, squash-merge to main. GitHub Actions runs `node build.js` and deploys to GitHub Pages automatically.
 
 ```bash
 git checkout -b feat/my-change
-# make changes, commit (build runs automatically)
+# make changes, commit
 git push -u origin feat/my-change
 gh pr create --base main --title "feat: my change"
 gh pr merge --auto --squash
