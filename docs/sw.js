@@ -1,11 +1,11 @@
-const CACHE_NAME = 'kids-sudoku-6dd356d5';
+const CACHE_NAME = 'kids-sudoku-5a646b67';
 const ASSETS = [
   "./",
   "./index.html",
   "./app.994d9041.js",
   "./sudoku.6f5d9ed4.js",
   "./sounds.a55c9509.js",
-  "./style.4723daed.css",
+  "./style.b1ab1f93.css",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
