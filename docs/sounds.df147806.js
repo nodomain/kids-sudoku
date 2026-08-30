@@ -5,16 +5,22 @@
 
 const Sounds = (() => {
   let ctx = null;
+  let muted = false;
 
   function getCtx() {
+    if (muted) return null;
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
   }
 
+  function setMuted(m) { muted = m; }
+  function isMuted() { return muted; }
+
   // Play a tone with envelope
   function tone(freq, duration = 0.15, type = 'sine', vol = 0.3) {
     const c = getCtx();
+    if (!c) return;
     const osc = c.createOscillator();
     const gain = c.createGain();
     osc.type = type;
@@ -82,5 +88,5 @@ const Sounds = (() => {
     tone(350, 0.06, 'triangle', 0.12);
   }
 
-  return { place, tap, error, undo, hint, win, star, erase, click };
+  return { place, tap, error, undo, hint, win, star, erase, click, setMuted, isMuted };
 })();
