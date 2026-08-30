@@ -60,17 +60,44 @@ const Sounds = (() => {
     setTimeout(() => tone(659, 0.12, 'sine', 0.2), 100);
   }
 
-  // Win fanfare - ascending arpeggio
+  // Win fanfare - ascending arpeggio (variant 1)
   function win() {
     const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
     notes.forEach((f, i) => {
       setTimeout(() => tone(f, 0.25, 'sine', 0.25), i * 120);
     });
-    // Final sparkle
     setTimeout(() => {
       tone(1047, 0.4, 'sine', 0.2);
       tone(1319, 0.4, 'sine', 0.15);
     }, 500);
+  }
+
+  // Win fanfare variant 2 - triumphant
+  function win2() {
+    const notes = [392, 494, 587, 784]; // G4 B4 D5 G5
+    notes.forEach((f, i) => {
+      setTimeout(() => tone(f, 0.2, 'sine', 0.25), i * 100);
+    });
+    setTimeout(() => {
+      tone(784, 0.3, 'sine', 0.2);
+      tone(988, 0.3, 'sine', 0.15);
+      tone(1175, 0.5, 'sine', 0.12);
+    }, 450);
+  }
+
+  // Win fanfare variant 3 - playful
+  function win3() {
+    const notes = [440, 554, 659, 880, 1109, 880]; // A4 C#5 E5 A5 C#6 A5
+    notes.forEach((f, i) => {
+      setTimeout(() => tone(f, 0.15, 'triangle', 0.2), i * 90);
+    });
+    setTimeout(() => tone(1109, 0.5, 'sine', 0.18), 600);
+  }
+
+  // Randomly pick a win sound
+  function winRandom() {
+    const fns = [win, win2, win3];
+    fns[Math.floor(Math.random() * fns.length)]();
   }
 
   // Star earned - bright ping
@@ -88,5 +115,5 @@ const Sounds = (() => {
     tone(350, 0.06, 'triangle', 0.12);
   }
 
-  return { place, tap, error, undo, hint, win, star, erase, click, setMuted, isMuted };
+  return { place, tap, error, undo, hint, win, winRandom, star, erase, click, setMuted, isMuted };
 })();

@@ -256,3 +256,82 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
 @media (min-width: 768px) {
   .board-container { max-width: 460px; }
 }
+
+/* iPad landscape: side-by-side board + controls */
+@media (min-width: 768px) and (orientation: landscape) {
+  #screen-game {
+    flex-direction: row; flex-wrap: wrap; justify-content: center;
+    gap: 24px; padding: 16px 32px;
+  }
+  .game-header { width: 100%; }
+  .board-container { max-width: 50vh; flex-shrink: 0; }
+  .game-sidebar {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 16px; flex: 1; max-width: 200px;
+  }
+  .input-bar { flex-direction: column; max-width: none; }
+  .input-btn { width: 48px; height: 48px; }
+  .game-actions { flex-direction: column; }
+}
+
+/* Pencil marks */
+.pencil-marks {
+  display: grid; width: 100%; height: 100%; padding: 1px;
+  font-size: 0.55rem; font-weight: 600; color: var(--text-light);
+  line-height: 1;
+}
+.board-container.size-4 .pencil-marks { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+.board-container.size-6 .pencil-marks { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); font-size: 0.45rem; }
+.board-container.size-9 .pencil-marks { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); font-size: 0.4rem; }
+.pencil-marks span {
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Active pencil mode button */
+.btn-action.active {
+  border-color: var(--primary); background: var(--primary-light);
+  color: var(--primary);
+}
+
+/* Daily puzzle highlight */
+.mode-card.daily-highlight {
+  border: 3px solid var(--accent);
+  animation: dailyPulse 2s ease-in-out infinite;
+}
+@keyframes dailyPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  50% { box-shadow: 0 4px 20px rgba(255,107,107,0.3); }
+}
+
+/* Dark mode toggle */
+.dark-toggle {
+  position: absolute; top: 16px; right: 16px;
+}
+#screen-profiles { position: relative; }
+
+/* Dark mode */
+html.dark {
+  --bg: #1a1b2e;
+  --card: #252640;
+  --primary: #6ea8fe;
+  --primary-light: #2a2d50;
+  --text: #e4e6f0;
+  --text-light: #8b8da0;
+  --shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+html.dark body { background: var(--bg); color: var(--text); }
+html.dark .cell { background: var(--card); }
+html.dark .cell.highlight { background: #2a2d50; }
+html.dark .cell.selected { background: var(--primary-light); }
+html.dark .cell.conflict { background: #4a2020; }
+html.dark .board-container { background: #555; }
+html.dark .profile-card,
+html.dark .mode-card,
+html.dark .avatar-option,
+html.dark .btn-action,
+html.dark .input-btn { background: var(--card); border-color: #3a3b55; }
+html.dark #profile-name { background: var(--card); color: var(--text); border-color: #3a3b55; }
+html.dark .age-btn { background: var(--card); border-color: #3a3b55; color: var(--text); }
+html.dark .btn-secondary { color: var(--text-light); border-color: #3a3b55; }
+html.dark .btn-primary { background: var(--primary); }
+html.dark meta[name="theme-color"] { content: '#1a1b2e'; }
