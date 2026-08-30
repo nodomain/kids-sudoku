@@ -165,6 +165,68 @@ function showScreen(id) {
   document.getElementById(`screen-${id}`).classList.add('active');
 }
 
+// --- URL Hash Routing ---
+let suppressHashChange = false;
+
+function setHash(hash) {
+  suppressHashChange = true;
+  location.hash = hash;
+  // Reset flag after the browser processes the hash change
+  setTimeout(() => { suppressHashChange = false; }, 0);
+}
+
+function routeFromHash() {
+  const hash = location.hash.slice(1); // remove #
+  if (!hash || hash === 'profiles') {
+    state.currentProfile = null;
+    save();
+    renderProfiles();
+    showScreen('profiles');
+    return;
+  }
+
+  const parts = hash.split('/');
+
+  if (parts[0] === 'profile' && parts[1]) {
+    const profile = state.profiles.find(p => p.id === parts[1]);
+    if (profile) {
+      state.currentProfile = profile.id;
+      save();
+      showModes();
+      return;
+    }
+  }
+
+  if (parts[0] === 'play' && parts[1] && parts[2]) {
+    const profile = state.profiles.find(p => p.id === parts[1]);
+    if (profile) {
+      state.currentProfile = profile.id;
+      save();
+      const allModes = [...(MODES.young || []), ...(MODES.old || [])];
+      const mode = allModes.find(m => m.id === parts[2]);
+      if (mode) {
+        startGame(mode);
+        return;
+      }
+    }
+  }
+
+  if (parts[0] === 'daily' && parts[1]) {
+    const profile = state.profiles.find(p => p.id === parts[1]);
+    if (profile) {
+      state.currentProfile = profile.id;
+      save();
+      const dailySize = profile.age === 'old' ? 6 : 4;
+      startDailyPuzzle(dailySize);
+      return;
+    }
+  }
+
+  // Fallback
+  renderProfiles();
+  showScreen('profiles');
+}
+
 // --- Profile Screen ---
 function renderProfiles() {
   const list = document.getElementById('profile-list');
@@ -185,6 +247,7 @@ function renderProfiles() {
 function selectProfile(id) {
   state.currentProfile = id;
   save();
+  setHash(`profile/${id}`);
   showModes();
 }
 
@@ -250,6 +313,7 @@ function createProfile() {
   state.profiles.push(profile);
   state.currentProfile = profile.id;
   save();
+  setHash(`profile/${profile.id}`);
   showModes();
 }
 
@@ -337,6 +401,7 @@ function startDailyPuzzle(size) {
   };
   selectedCell = null;
   pencilMode = false;
+  setHash(`daily/${state.currentProfile}`);
   showScreen('game');
   renderGame();
   startTimer();
@@ -372,6 +437,7 @@ function startGame(mode) {
 
   selectedCell = null;
   pencilMode = false;
+  setHash(`play/${state.currentProfile}/${mode.id}`);
   showScreen('game');
   renderGame();
   startTimer();
@@ -732,11 +798,13 @@ function init() {
   initDarkMode();
   renderProfiles();
 
-  if (state.currentProfile && getProfile()) {
-    showModes();
-  } else {
-    showScreen('profiles');
-  }
+  // Route from URL hash, or default to profiles
+  routeFromHash();
+
+  // Handle browser back/forward
+  window.addEventListener('hashchange', () => {
+    if (!suppressHashChange) routeFromHash();
+  });
 
   // Event listeners
   document.getElementById('btn-add-profile').onclick = () => {
@@ -745,18 +813,21 @@ function init() {
   };
   document.getElementById('btn-save-profile').onclick = createProfile;
   document.getElementById('btn-cancel-profile').onclick = () => {
+    setHash('profiles');
     renderProfiles();
     showScreen('profiles');
   };
   document.getElementById('btn-back-profiles').onclick = () => {
     state.currentProfile = null;
     save();
+    setHash('profiles');
     renderProfiles();
     showScreen('profiles');
   };
   document.getElementById('btn-back-modes').onclick = () => {
     stopTimer();
     saveGame();
+    setHash(`profile/${state.currentProfile}`);
     showModes();
   };
   document.getElementById('btn-undo').onclick = undo;
@@ -789,7 +860,10 @@ function init() {
   }
 
   document.getElementById('btn-next-puzzle').onclick = nextPuzzle;
-  document.getElementById('btn-back-menu').onclick = showModes;
+  document.getElementById('btn-back-menu').onclick = () => {
+    setHash(`profile/${state.currentProfile}`);
+    showModes();
+  };
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
