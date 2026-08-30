@@ -171,12 +171,72 @@ let suppressHashChange = false;
 function setHash(hash) {
   suppressHashChange = true;
   location.hash = hash;
-  // Reset flag after the browser processes the hash change
   setTimeout(() => { suppressHashChange = false; }, 0);
 }
 
+// Encode board state: each cell as base-36 digit, puzzle.board.solution
+function encodeBoardState() {
+  if (!state.game) return '';
+  const { board, puzzle, solution, mode } = state.game;
+  const size = mode.size;
+  let p = '', b = '', s = '';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      p += puzzle[r][c].toString(36);
+      b += board[r][c].toString(36);
+      s += solution[r][c].toString(36);
+    }
+  }
+  return `${p}.${b}.${s}`;
+}
+
+function decodeBoardState(encoded, size) {
+  const parts = encoded.split('.');
+  if (parts.length < 3) return null;
+  const [ps, bs, ss] = parts;
+  const n = size * size;
+  if (ps.length !== n || bs.length !== n || ss.length !== n) return null;
+  const puzzle = [], board = [], solution = [];
+  for (let r = 0; r < size; r++) {
+    const pr = [], br = [], sr = [];
+    for (let c = 0; c < size; c++) {
+      const i = r * size + c;
+      pr.push(parseInt(ps[i], 36));
+      br.push(parseInt(bs[i], 36));
+      sr.push(parseInt(ss[i], 36));
+    }
+    puzzle.push(pr); board.push(br); solution.push(sr);
+  }
+  return { puzzle, board, solution, given: puzzle.map(r => r.map(v => v !== 0)) };
+}
+
+function updateGameHash() {
+  if (!state.game || !state.currentProfile) return;
+  const m = state.game.mode;
+  const bs = encodeBoardState();
+  if (m.isDaily) {
+    setHash(`daily/${state.currentProfile}/${bs}`);
+  } else {
+    setHash(`play/${state.currentProfile}/${m.id}/${bs}`);
+  }
+}
+
+function restoreGameFromState(decoded, mode, size) {
+  state.game = {
+    mode, ...decoded,
+    history: [], hints: 0, startTime: null, elapsed: 0,
+    pencilMarks: Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => new Set()))
+  };
+  selectedCell = null;
+  pencilMode = false;
+  showScreen('game');
+  renderGame();
+  startTimer();
+}
+
 function routeFromHash() {
-  const hash = location.hash.slice(1); // remove #
+  const hash = location.hash.slice(1);
   if (!hash || hash === 'profiles') {
     state.currentProfile = null;
     save();
@@ -205,6 +265,10 @@ function routeFromHash() {
       const allModes = [...(MODES.young || []), ...(MODES.old || [])];
       const mode = allModes.find(m => m.id === parts[2]);
       if (mode) {
+        if (parts[3]) {
+          const decoded = decodeBoardState(parts[3], mode.size);
+          if (decoded) { restoreGameFromState(decoded, mode, mode.size); return; }
+        }
         startGame(mode);
         return;
       }
@@ -217,12 +281,23 @@ function routeFromHash() {
       state.currentProfile = profile.id;
       save();
       const dailySize = profile.age === 'old' ? 6 : 4;
+      if (parts[2]) {
+        const decoded = decodeBoardState(parts[2], dailySize);
+        if (decoded) {
+          const mode = {
+            id: `daily-${dailySize}`, size: dailySize, type: 'numbers', icon: '\ud83d\udcc5',
+            label: `T\u00e4gliches ${dailySize}\u00d7${dailySize}`, desc: 'Tagesr\u00e4tsel',
+            difficulty: 'medium', isDaily: true
+          };
+          restoreGameFromState(decoded, mode, dailySize);
+          return;
+        }
+      }
       startDailyPuzzle(dailySize);
       return;
     }
   }
 
-  // Fallback
   renderProfiles();
   showScreen('profiles');
 }
@@ -406,6 +481,7 @@ function startDailyPuzzle(size) {
   renderGame();
   startTimer();
   saveGame();
+  updateGameHash();
   Sounds.click();
 }
 
@@ -442,6 +518,7 @@ function startGame(mode) {
   renderGame();
   startTimer();
   saveGame();
+  updateGameHash();
 }
 
 function renderGame() {
@@ -555,6 +632,7 @@ function placeValue(val) {
     Sounds.tap();
     renderGame();
     saveGame();
+    updateGameHash();
     return;
   }
 
@@ -567,6 +645,7 @@ function placeValue(val) {
 
   renderGame();
   saveGame();
+  updateGameHash();
 
   if (Sudoku.isComplete(state.game.board, state.game.mode.size)) {
     setTimeout(() => showWin(), 300);
@@ -586,6 +665,7 @@ function eraseCell() {
   Sounds.erase();
   renderGame();
   saveGame();
+  updateGameHash();
 }
 
 function undo() {
@@ -598,6 +678,7 @@ function undo() {
   Sounds.undo();
   renderGame();
   saveGame();
+  updateGameHash();
 }
 
 function checkBoard() {
@@ -642,6 +723,7 @@ function giveHint() {
   Sounds.hint();
   renderGame();
   saveGame();
+  updateGameHash();
 
   const size = state.game.mode.size;
   const idx = hint.row * size + hint.col;
@@ -827,6 +909,7 @@ function init() {
   document.getElementById('btn-back-modes').onclick = () => {
     stopTimer();
     saveGame();
+    updateGameHash();
     setHash(`profile/${state.currentProfile}`);
     showModes();
   };
