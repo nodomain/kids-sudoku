@@ -24,6 +24,14 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: manipulation; /* prevent double-tap zoom */
+  -webkit-text-size-adjust: 100%; /* prevent text size inflation */
+  overscroll-behavior: none; /* prevent pull-to-refresh / bounce */
+}
+
+/* Prevent zoom on all interactive elements */
+button, input, .cell, .input-btn, .btn-action, .mode-card, .profile-card, .avatar-option {
+  touch-action: manipulation;
 }
 
 /* Screens */
@@ -261,16 +269,14 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
   #screen-game { height: 100vh; }
 }
 
-/* Board: sized by AVAILABLE HEIGHT, not width.
-   Reserve ~200px for header(36) + input-bar(50) + actions(80) + gaps/padding(34).
-   min() ensures it never exceeds the screen width either. */
+/* Board: CSS fallback; JS overrides with exact window.innerHeight calculation */
 .board-container {
-  width: min(100%, calc(100dvh - 200px));
+  width: min(100%, calc(100dvh - 240px));
   max-width: 400px;
   flex-shrink: 1; flex-grow: 0;
 }
 @supports not (width: 1dvh) {
-  .board-container { width: min(100%, calc(100vh - 220px)); }
+  .board-container { width: min(100%, calc(100vh - 260px)); }
 }
 
 /* Compact game header */
