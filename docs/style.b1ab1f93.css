@@ -159,8 +159,11 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
 .board-container {
   display: grid; gap: var(--cell-gap);
   background: var(--text); border-radius: 12px; padding: var(--cell-gap);
-  box-shadow: var(--shadow); max-width: 400px; width: 100%;
+  box-shadow: var(--shadow);
+  max-width: min(100%, 400px);
+  width: min(100%, 55vh);
   aspect-ratio: 1;
+  flex-shrink: 0;
 }
 .board-container.size-4 { grid-template-columns: repeat(4, 1fr); }
 .board-container.size-6 { grid-template-columns: repeat(6, 1fr); }
@@ -247,14 +250,86 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
 }
 .cell.shake { animation: shake 0.3s ease; }
 
-/* Responsive */
-@media (max-width: 400px) {
-  .cell { font-size: 1.4rem; }
-  .input-btn { width: 44px; height: 44px; font-size: 1.2rem; }
-  h1 { font-size: 1.6rem; }
+/* Responsive - iPhone optimization */
+
+/* Game screen: use all available height, no scrolling */
+#screen-game {
+  padding: 12px 12px env(safe-area-inset-bottom, 8px);
+  justify-content: flex-start; overflow: hidden;
 }
+
+/* Board: size based on available viewport height, not width */
+.board-container {
+  max-width: min(100%, 400px);
+  max-height: min(55vh, 400px);
+  width: min(100%, 55vh);
+  aspect-ratio: 1;
+}
+
+/* Compact game header on small screens */
+.game-header {
+  gap: 4px; flex-wrap: nowrap;
+}
+.game-header .btn-icon { padding: 4px; font-size: 1.3rem; }
+.game-info { font-size: 0.95rem; white-space: nowrap; }
+.game-timer { font-size: 0.95rem; white-space: nowrap; }
+
+/* Compact input bar */
+.input-bar { margin-top: 8px; gap: 6px; }
+.game-actions { margin-top: 8px; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+/* Small phones (iPhone SE, iPhone mini, <400px) */
+@media (max-width: 400px) {
+  .cell { font-size: 1.3rem; }
+  .input-btn { width: 40px; height: 40px; font-size: 1.1rem; border-radius: 10px; }
+  h1 { font-size: 1.5rem; }
+  .btn-action { padding: 8px 10px; font-size: 0.8rem; }
+  .board-container { max-height: min(50vh, 340px); width: min(100%, 50vh); border-radius: 8px; }
+  .game-header .btn-icon { font-size: 1.1rem; }
+  .mode-card { padding: 16px 10px; }
+  .mode-card .mode-icon { font-size: 2rem; }
+  .profile-card .avatar { font-size: 2.5rem; }
+}
+
+/* Standard phones (iPhone 12/13/14/15, 390-430px) */
+@media (min-width: 401px) and (max-width: 430px) {
+  .cell { font-size: 1.5rem; }
+  .input-btn { width: 44px; height: 44px; font-size: 1.2rem; }
+  .board-container { max-height: min(52vh, 380px); width: min(100%, 52vh); }
+}
+
+/* Short phones or landscape phone */
+@media (max-height: 700px) {
+  #screen-game { padding: 8px 8px; }
+  .board-container { max-height: 48vh; width: min(100%, 48vh); }
+  .game-header { margin-bottom: 4px; }
+  .input-bar { margin-top: 4px; gap: 4px; }
+  .game-actions { margin-top: 4px; }
+  .btn-action { padding: 6px 10px; font-size: 0.75rem; }
+  .input-btn { width: 38px; height: 38px; font-size: 1rem; }
+  h1 { font-size: 1.3rem; margin-bottom: 4px; }
+  .subtitle { margin-bottom: 12px; }
+}
+
+/* 9x9 specific: smaller cells, tighter grid */
+.board-container.size-9 { --cell-gap: 2px; }
+.board-container.size-9 .cell { font-size: 1.2rem; border-radius: 2px; }
+@media (max-width: 430px) {
+  .board-container.size-9 .cell { font-size: 1rem; }
+  .board-container.size-9 .pencil-marks { font-size: 0.35rem; }
+}
+
+/* Safe area insets for notched iPhones */
+@supports (padding: env(safe-area-inset-top)) {
+  .screen { padding-top: max(12px, env(safe-area-inset-top)); }
+  #screen-game { padding-bottom: env(safe-area-inset-bottom, 8px); }
+}
+
+/* iPad and larger */
 @media (min-width: 768px) {
-  .board-container { max-width: 460px; }
+  .board-container { max-width: 460px; max-height: 460px; width: 460px; }
+  .cell { font-size: 2rem; }
+  .input-btn { width: 56px; height: 56px; font-size: 1.5rem; }
 }
 
 /* iPad landscape: side-by-side board + controls */
