@@ -133,6 +133,59 @@ const Sudoku = (() => {
     return createPuzzle(size, removals);
   }
 
+  // Seeded generation for daily puzzles
+  function generateSeeded(size, difficulty = 'medium', rng) {
+    const removals = DIFFICULTY[size]?.[difficulty] ?? DIFFICULTY[size]?.easy ?? 4;
+
+    function seededShuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const board = Array.from({ length: size }, () => Array(size).fill(0));
+    const values = Array.from({ length: size }, (_, i) => i + 1);
+
+    function fill(pos) {
+      if (pos === size * size) return true;
+      const row = Math.floor(pos / size);
+      const col = pos % size;
+      const shuffled = seededShuffle([...values]);
+      for (const val of shuffled) {
+        if (isValid(board, size, row, col, val)) {
+          board[row][col] = val;
+          if (fill(pos + 1)) return true;
+          board[row][col] = 0;
+        }
+      }
+      return false;
+    }
+
+    fill(0);
+    const solution = board.map(r => [...r]);
+    const puzzle = solution.map(r => [...r]);
+    const positions = seededShuffle(Array.from({ length: size * size }, (_, i) => i));
+
+    let removed = 0;
+    for (const pos of positions) {
+      if (removed >= removals) break;
+      const row = Math.floor(pos / size);
+      const col = pos % size;
+      const saved = puzzle[row][col];
+      puzzle[row][col] = 0;
+      const test = puzzle.map(r => [...r]);
+      if (countSolutions(test, size) === 1) {
+        removed++;
+      } else {
+        puzzle[row][col] = saved;
+      }
+    }
+
+    return { puzzle, solution };
+  }
+
   // Find conflicts in current board state
   function findConflicts(board, size) {
     const conflicts = new Set();
@@ -196,5 +249,5 @@ const Sudoku = (() => {
     return findConflicts(board, size).size === 0;
   }
 
-  return { generate, isValid, findConflicts, getHint, isComplete, getConfig };
+  return { generate, generateSeeded, isValid, findConflicts, getHint, isComplete, getConfig };
 })();
