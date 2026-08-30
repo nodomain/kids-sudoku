@@ -535,6 +535,14 @@ function renderGame() {
   container.className = `board-container size-${size}`;
   container.innerHTML = '';
 
+  // Size board based on actual visible viewport (innerHeight), not CSS vh/dvh
+  // Reserve space for: header(40) + input-bar(52) + actions(45+45) + gaps(30) = ~212px
+  const availH = window.innerHeight - 220;
+  const availW = Math.min(container.parentElement.clientWidth, 400);
+  const boardSize = Math.min(availH, availW);
+  container.style.width = boardSize + 'px';
+  container.style.maxWidth = boardSize + 'px';
+
   const { boxRows, boxCols } = Sudoku.getConfig(size);
 
   for (let r = 0; r < size; r++) {
@@ -938,6 +946,23 @@ function init() {
     setHash(`profile/${state.currentProfile}`);
     showModes();
   };
+
+  // Prevent iOS double-tap zoom (belt + suspenders with CSS touch-action)
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+
+  // Prevent iOS pinch zoom
+  document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+
+  // Resize board on orientation change / keyboard show
+  window.addEventListener('resize', () => {
+    if (state.game) renderGame();
+  });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
