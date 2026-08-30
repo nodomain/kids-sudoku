@@ -166,12 +166,8 @@ function showScreen(id) {
 }
 
 // --- URL Hash Routing ---
-let suppressHashChange = false;
-
 function setHash(hash) {
-  suppressHashChange = true;
-  location.hash = hash;
-  setTimeout(() => { suppressHashChange = false; }, 0);
+  history.replaceState(null, '', '#' + hash);
 }
 
 // Encode board state: each cell as base-36 digit, puzzle.board.solution
@@ -285,8 +281,8 @@ function routeFromHash() {
         const decoded = decodeBoardState(parts[2], dailySize);
         if (decoded) {
           const mode = {
-            id: `daily-${dailySize}`, size: dailySize, type: 'numbers', icon: '\ud83d\udcc5',
-            label: `T\u00e4gliches ${dailySize}\u00d7${dailySize}`, desc: 'Tagesr\u00e4tsel',
+            id: `daily-${dailySize}`, size: dailySize, type: 'numbers', icon: '📅',
+            label: `Tägliches ${dailySize}×${dailySize}`, desc: 'Tagesrätsel',
             difficulty: 'medium', isDaily: true
           };
           restoreGameFromState(decoded, mode, dailySize);
@@ -880,13 +876,8 @@ function init() {
   initDarkMode();
   renderProfiles();
 
-  // Route from URL hash, or default to profiles
+  // Route from URL hash on initial load only
   routeFromHash();
-
-  // Handle browser back/forward
-  window.addEventListener('hashchange', () => {
-    if (!suppressHashChange) routeFromHash();
-  });
 
   // Event listeners
   document.getElementById('btn-add-profile').onclick = () => {
