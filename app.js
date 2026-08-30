@@ -31,8 +31,54 @@ const MODES = {
 let state = {
   profiles: [],
   currentProfile: null,
-  game: null  // { mode, puzzle, solution, board, given, history, hints }
+  game: null  // { mode, puzzle, solution, board, given, history, hints, startTime, elapsed }
 };
+
+let timerInterval = null;
+
+// --- Timer ---
+function startTimer() {
+  stopTimer();
+  if (!state.game) return;
+  if (!state.game.startTime) state.game.startTime = Date.now();
+  if (!state.game.elapsed) state.game.elapsed = 0;
+  // Resume: adjust startTime by already elapsed
+  state.game.startTime = Date.now() - state.game.elapsed * 1000;
+  updateTimerDisplay();
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  if (!state.game) return;
+  const elapsed = Math.floor((Date.now() - state.game.startTime) / 1000);
+  state.game.elapsed = elapsed;
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const el = document.getElementById('game-timer');
+  if (el) el.textContent = `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Time targets per mode (seconds): 3 stars / 2 stars / 1 star (anything above)
+const TIME_TARGETS = {
+  '4x4-pics':   [60, 120],
+  '4x4-fruits': [60, 120],
+  '4x4-shapes': [60, 120],
+  '4x4-nums':   [45, 90],
+  '6x6-nums':   [120, 240],
+  '6x6-med':    [180, 360],
+  '9x9-nums':   [300, 600],
+};
+
+function getTimeStars(modeId, seconds) {
+  const targets = TIME_TARGETS[modeId] || [120, 240];
+  if (seconds <= targets[0]) return 3;
+  if (seconds <= targets[1]) return 2;
+  return 1;
+}
 
 // --- Persistence ---
 function save() {
@@ -67,7 +113,8 @@ function saveGame() {
       board: state.game.board,
       given: state.game.given,
       history: state.game.history,
-      hints: state.game.hints
+      hints: state.game.hints,
+      elapsed: state.game.elapsed || 0
     };
     save();
   }
@@ -208,6 +255,7 @@ let selectedCell = null;
 
 function startGame(mode) {
   const profile = getProfile();
+  Sounds.click();
 
   // Check for saved game
   if (profile.currentGame && profile.currentGame.mode.id === mode.id) {
@@ -222,13 +270,16 @@ function startGame(mode) {
       board: puzzle.map(r => [...r]),
       given,
       history: [],
-      hints: 0
+      hints: 0,
+      startTime: null,
+      elapsed: 0
     };
   }
 
   selectedCell = null;
   showScreen('game');
   renderGame();
+  startTimer();
   saveGame();
 }
 
@@ -286,6 +337,7 @@ function renderGame() {
       if (!given[r][c]) {
         cell.onclick = () => {
           selectedCell = [r, c];
+          Sounds.tap();
           renderGame();
         };
       }
@@ -325,6 +377,7 @@ function placeValue(val) {
   const prev = state.game.board[r][c];
   state.game.history.push({ r, c, prev });
   state.game.board[r][c] = val;
+  Sounds.place();
 
   renderGame();
   saveGame();
@@ -344,6 +397,7 @@ function eraseCell() {
   if (prev === 0) return;
   state.game.history.push({ r, c, prev });
   state.game.board[r][c] = 0;
+  Sounds.erase();
   renderGame();
   saveGame();
 }
@@ -352,6 +406,7 @@ function undo() {
   if (!state.game || state.game.history.length === 0) return;
   const last = state.game.history.pop();
   state.game.board[last.r][last.c] = last.prev;
+  Sounds.undo();
   renderGame();
   saveGame();
 }
@@ -370,6 +425,8 @@ function checkBoard() {
       cell.classList.add('conflict', 'shake');
     }
   });
+
+  if (conflicts.size > 0) Sounds.error();
 
   if (conflicts.size === 0) {
     // Check for empty cells
@@ -393,6 +450,7 @@ function giveHint() {
   state.game.board[hint.row][hint.col] = hint.value;
   state.game.given[hint.row][hint.col] = true; // Mark as given so it can't be erased
   selectedCell = [hint.row, hint.col];
+  Sounds.hint();
   renderGame();
   saveGame();
 
@@ -412,8 +470,15 @@ function showWin() {
   const profile = getProfile();
   if (!profile || !state.game) return;
 
-  const hints = state.game.hints;
-  const stars = hints === 0 ? 3 : hints <= 2 ? 2 : 1;
+  stopTimer();
+  const elapsed = state.game.elapsed || 0;
+  const stars = getTimeStars(state.game.mode.id, elapsed);
+
+  Sounds.win();
+  // Play star pings after fanfare
+  for (let i = 0; i < stars; i++) {
+    setTimeout(() => Sounds.star(), 700 + i * 250);
+  }
 
   profile.stars = (profile.stars || 0) + stars;
   profile.puzzlesSolved = (profile.puzzlesSolved || 0) + 1;
@@ -427,15 +492,18 @@ function showWin() {
     '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
   document.getElementById('win-animation').textContent = '🎉';
 
-  const messages = [
-    'Wow, du bist ein Sudoku-Star!',
-    'Großartig gemacht!',
-    'Du wirst immer besser!',
-    'Fantastisch!',
-    'Klasse, weiter so!'
-  ];
+  // Time display
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('win-time').textContent =
+    `⏱ ${mins}:${secs.toString().padStart(2, '0')}`;
+
+  const messages3 = ['Blitzschnell!', 'Wahnsinn, so schnell!', 'Turbo-Löser!'];
+  const messages2 = ['Gut gemacht!', 'Toll gelöst!', 'Klasse!'];
+  const messages1 = ['Geschafft!', 'Weiter so!', 'Du wirst schneller!'];
+  const pool = stars === 3 ? messages3 : stars === 2 ? messages2 : messages1;
   document.getElementById('win-message').textContent =
-    messages[Math.floor(Math.random() * messages.length)];
+    pool[Math.floor(Math.random() * pool.length)];
 
   showScreen('win');
 }
@@ -474,6 +542,7 @@ function init() {
     showScreen('profiles');
   };
   document.getElementById('btn-back-modes').onclick = () => {
+    stopTimer();
     saveGame();
     showModes();
   };

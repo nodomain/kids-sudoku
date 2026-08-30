@@ -150,6 +150,10 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
   width: 100%; margin-bottom: 12px;
 }
 .game-info { font-weight: 700; font-size: 1.1rem; }
+.game-timer {
+  font-weight: 700; font-size: 1.1rem; color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Board */
 .board-container {
@@ -223,6 +227,7 @@ h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center; 
   justify-content: center; height: 100%; gap: 16px;
 }
 .win-stars { font-size: 3rem; letter-spacing: 8px; }
+.win-time { font-size: 1.2rem; color: var(--text-light); font-weight: 600; }
 .win-animation {
   font-size: 4rem; animation: bounce 0.6s ease infinite alternate;
 }

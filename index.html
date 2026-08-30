@@ -50,6 +50,7 @@
     <div class="game-header">
       <button id="btn-back-modes" class="btn-icon" aria-label="Zurück">←</button>
       <div id="game-info" class="game-info"></div>
+      <div id="game-timer" class="game-timer">⏱ 0:00</div>
       <button id="btn-hint" class="btn-icon" aria-label="Hinweis">💡</button>
     </div>
     <div id="board-container" class="board-container"></div>
@@ -67,6 +68,7 @@
       <div id="win-animation" class="win-animation"></div>
       <h1>🎉 Super!</h1>
       <div id="win-stars" class="win-stars"></div>
+      <p id="win-time" class="win-time"></p>
       <p id="win-message"></p>
       <button id="btn-next-puzzle" class="btn-primary">Nächstes Puzzle</button>
       <button id="btn-back-menu" class="btn-secondary">Zum Menü</button>
@@ -74,6 +76,7 @@
   </div>
 
   <script src="sudoku.js"></script>
+  <script src="sounds.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
