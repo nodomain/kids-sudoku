@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#4a90d9">
+  <title>Kids Sudoku</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Profile Selection Screen -->
+  <div id="screen-profiles" class="screen active">
+    <h1>🧩 Kids Sudoku</h1>
+    <p class="subtitle">Wer spielt?</p>
+    <div id="profile-list" class="profile-grid"></div>
+    <button id="btn-add-profile" class="btn-round" aria-label="Neues Profil">＋</button>
+  </div>
+
+  <!-- Profile Creation Screen -->
+  <div id="screen-create-profile" class="screen">
+    <h1>Neues Profil</h1>
+    <div id="avatar-picker" class="avatar-grid"></div>
+    <input type="text" id="profile-name" placeholder="Name" maxlength="12" autocomplete="off">
+    <div class="age-pick">
+      <button class="age-btn" data-age="young">🧸 Klein (3-5)</button>
+      <button class="age-btn" data-age="old">🎒 Groß (6-9)</button>
+    </div>
+    <button id="btn-save-profile" class="btn-primary" disabled>Los geht's!</button>
+    <button id="btn-cancel-profile" class="btn-secondary">Zurück</button>
+  </div>
+
+  <!-- Mode Selection Screen -->
+  <div id="screen-modes" class="screen">
+    <div class="screen-header">
+      <button id="btn-back-profiles" class="btn-icon" aria-label="Zurück">←</button>
+      <div id="current-profile-badge" class="profile-badge"></div>
+    </div>
+    <h1 id="greeting"></h1>
+    <div class="mode-grid" id="mode-grid"></div>
+    <div class="stats-bar" id="stats-bar"></div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <button id="btn-back-modes" class="btn-icon" aria-label="Zurück">←</button>
+      <div id="game-info" class="game-info"></div>
+      <button id="btn-hint" class="btn-icon" aria-label="Hinweis">💡</button>
+    </div>
+    <div id="board-container" class="board-container"></div>
+    <div id="input-bar" class="input-bar"></div>
+    <div class="game-actions">
+      <button id="btn-undo" class="btn-action">↩️ Undo</button>
+      <button id="btn-erase" class="btn-action">🧹 Löschen</button>
+      <button id="btn-check" class="btn-action">✅ Prüfen</button>
+    </div>
+  </div>
+
+  <!-- Win Screen -->
+  <div id="screen-win" class="screen">
+    <div class="win-content">
+      <div id="win-animation" class="win-animation"></div>
+      <h1>🎉 Super!</h1>
+      <div id="win-stars" class="win-stars"></div>
+      <p id="win-message"></p>
+      <button id="btn-next-puzzle" class="btn-primary">Nächstes Puzzle</button>
+      <button id="btn-back-menu" class="btn-secondary">Zum Menü</button>
+    </div>
+  </div>
+
+  <script src="sudoku.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
